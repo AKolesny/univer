@@ -5,15 +5,15 @@ import java.util.List;
 
 public class GroupAndStudents {
 
-    private String nameGroup;
+    private long groupId;
     private List<Long> studentsId;
 
-    public String getNameGroup() {
-        return nameGroup;
+    public long getGroupId() {
+        return groupId;
     }
 
-    public void setNameGroup(String nameGroup) {
-        this.nameGroup = nameGroup;
+    public void setGroupId(long groupId) {
+        this.groupId = groupId;
     }
 
     public List<Long> getStudentsId() {
@@ -30,13 +30,5 @@ public class GroupAndStudents {
         }
 
         this.studentsId.add(a);
-    }
-
-    @Override
-    public String toString() {
-        return "GroupAndStudents{" +
-                "nameGroup='" + nameGroup + '\'' +
-                ", studentsId=" + studentsId +
-                '}';
     }
 }

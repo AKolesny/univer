@@ -14,7 +14,7 @@ public class ConnectionFactory {
     static {
         ComboPooledDataSource pool = new ComboPooledDataSource();
         try {
-            pool.setDriverClass("org.postgres.Driver");
+            pool.setDriverClass("org.postgresql.Driver");
         } catch (PropertyVetoException e) {
             throw new RuntimeException("Проверь имя драйвера!", e);
         }

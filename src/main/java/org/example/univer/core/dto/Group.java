@@ -1,9 +1,8 @@
 package org.example.univer.core.dto;
 
-import java.util.List;
-import java.util.Objects;
+import org.example.univer.core.dto.groupAndStudentGet.api.IGroupAndStudentGet;
 
-public class Group {
+public class Group implements IGroupAndStudentGet {
 
     private long id;
     private String name;

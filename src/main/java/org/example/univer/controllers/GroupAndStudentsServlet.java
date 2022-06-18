@@ -2,10 +2,10 @@ package org.example.univer.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import org.example.univer.core.dto.GroupAndStudents;
-import org.example.univer.core.dto.Student;
+import org.example.univer.core.dto.groupAndStudentGet.GroupIdOrStudentId;
 import org.example.univer.services.GroupAndStudentsService;
-import org.example.univer.services.StudentService;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -31,10 +31,14 @@ public class GroupAndStudentsServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
         resp.setContentType("application/json; charset=utf-8");
+        GroupIdOrStudentId gs = new GroupIdOrStudentId();
 
-        long id = mapper.readValue(req.getInputStream(), long.class);
-        String json = mapper.writeValueAsString(service.getGroupAndStudents(id));
+        try {
+            gs = mapper.readValue(req.getInputStream(), GroupIdOrStudentId.class);
+        } catch (MismatchedInputException ignored) {
+        }
 
+        String json = mapper.writeValueAsString(service.getGroupAndStudents(gs));
         resp.getWriter().write(json);
     }
 

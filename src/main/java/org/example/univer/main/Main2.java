@@ -8,7 +8,7 @@ import org.example.univer.dao.StudentDao;
 import java.util.List;
 
 public class Main2 {
-    public static void main(String[] args) {
+   /* public static void main(String[] args) {
         Group student = new Group();
         student.setName("SuperTanya");
 
@@ -24,5 +24,5 @@ public class Main2 {
         for (Group student1 : students) {
             System.out.println(student1);
         }
-    }
+    }*/
 }

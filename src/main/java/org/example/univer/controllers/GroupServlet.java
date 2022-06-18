@@ -31,7 +31,7 @@ public class GroupServlet extends HttpServlet {
         req.setCharacterEncoding("UTF-8");
         resp.setContentType("application/json; charset=utf-8");
 
-        long id = mapper.readValue(req.getInputStream(), long.class);
+        //long id = mapper.readValue(req.getInputStream(), long.class);
         String json = mapper.writeValueAsString(service.getGroup());
 
         resp.getWriter().write(json);

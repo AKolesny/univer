@@ -1,32 +1,82 @@
 package org.example.univer.dao;
 
-import org.example.univer.core.dto.GroupAndStudents;
-import org.example.univer.dao.api.IGroupAndStudents;
+import org.example.univer.core.dto.*;
+import org.example.univer.core.dto.groupAndStudentGet.GroupsStudentGet;
+import org.example.univer.core.dto.groupAndStudentGet.ListGroupsAndStudents;
+import org.example.univer.core.dto.groupAndStudentGet.ListStudentsGet;
+import org.example.univer.core.dto.groupAndStudentGet.api.IGroupAndStudentGet;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
-public class GroupAndStudentDao implements IGroupAndStudents<GroupAndStudents> {
+public class GroupAndStudentDao {
 
-    private static final String BD = "univer.groups_and_students";
+    private static final String BD = "univer.groups_students";
 
     private static final String SELECT_ALL =
-            "SELECT " +
-                "group_name, " +
-                "id_student " +
-            "FROM " +
-                BD + ";"
+            "SELECT \n" +
+                "g.id AS group_id, \n" +
+                "g.name AS group_name, \n" +
+                "s.id AS student_id, \n" +
+                "s.name AS student_name, \n" +
+                "s.age AS student_age, \n" +
+                "s.score AS student_score, \n" +
+                "s.olympic_gamer AS student_olympic_gamer\n" +
+            "FROM \n" +
+                BD + " AS gs\n" +
+            "JOIN \n" +
+                "univer.groups AS g \n" +
+            "ON \n" +
+                "gs.groups_id = g.id\n" +
+            "JOIN \n" +
+                "univer.students AS s \n" +
+            "ON \n" +
+                "gs.students_id = s.id\n" +
+            "ORDER BY \n" +
+                "g.id ASC, \n" +
+                "s.id ASC;"
+            ;
+
+    private static final String SELECT_GET_GROUP =
+            "SELECT \n" +
+                "g.id AS group_id, \n" +
+                "g.name AS group_name \n" +
+            "FROM \n" +
+                BD + " AS gs\n" +
+            "JOIN \n" +
+                "univer.groups AS g \n" +
+            "ON \n" +
+                "gs.groups_id = g.id\n" +
+            "WHERE \n" +
+                "gs.students_id = ?;"
+            ;
+
+    private static final String SELECT_GET_STUDENTS =
+            "SELECT \n" +
+                "s.id AS student_id, \n" +
+                "s.name AS student_name, \n" +
+                "s.age AS student_age, \n" +
+                "s.score AS student_score, \n" +
+                "s.olympic_gamer AS student_olympic_gamer\n" +
+            "FROM \n" +
+                BD + " AS gs\n" +
+            "JOIN \n" +
+                "univer.students AS s \n" +
+            "ON \n" +
+                "gs.students_id = s.id\n" +
+            "WHERE \n" +
+                "gs.groups_id = ? \n" +
+            "ORDER BY \n" +
+                "s.id ASC;"
             ;
 
     private static final String INSERT =
             "INSERT INTO " +
                     BD + " (" +
-                    "group_name, " +
-                    "id_student " +
+                    "groups_id, " +
+                    "students_id " +
                     ") " +
                     "VALUES " +
                     "(?, ?);"
@@ -36,9 +86,9 @@ public class GroupAndStudentDao implements IGroupAndStudents<GroupAndStudents> {
             "DELETE FROM " +
                     BD + " " +
                     "WHERE " +
-                    "group_name = ? " +
+                    "groups_id = ? " +
                     "AND " +
-                    "id_student = ?;"
+                    "students_id = ?;"
             ;
 
     public void create(GroupAndStudents item) {
@@ -47,7 +97,7 @@ public class GroupAndStudentDao implements IGroupAndStudents<GroupAndStudents> {
             PreparedStatement preparedStatement = connection.prepareStatement(INSERT)) {
 
             for (long id : item.getStudentsId()) {
-                preparedStatement.setObject(1, item.getNameGroup());
+                preparedStatement.setObject(1, item.getGroupId());
                 preparedStatement.setObject(2, id);
 
                 preparedStatement.execute();
@@ -59,15 +109,72 @@ public class GroupAndStudentDao implements IGroupAndStudents<GroupAndStudents> {
 
     }
 
-    public List<GroupAndStudents> get() {
+    public IGroupAndStudentGet getAll() {
         try(Connection connection = ConnectionFactory.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ALL)) {
 
             try(ResultSet resultSet = preparedStatement.executeQuery()) {
-                return map(resultSet);
+
+                ListGroupsAndStudents listGs = new ListGroupsAndStudents();
+                GroupsStudentGet gs = new GroupsStudentGet();
+                Group group;
+
+                while (resultSet.next()) {
+                    group = mapGroup(resultSet);
+
+                    if (gs.getGroup() != null && gs.getGroup().getId() != group.getId()) {
+                        listGs.addGroupStudent(gs);
+
+                        gs = new GroupsStudentGet();
+                    }
+
+                    gs.setGroup(group);
+                    gs.addStudent(mapStudent(resultSet));
+                }
+
+                if (gs.getGroup() != null) {
+                    listGs.addGroupStudent(gs);
+                }
+
+                return listGs;
             }
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка при get методе", e);
+        }
+    }
+
+    public IGroupAndStudentGet getGroup(long id) {
+        try(Connection connection = ConnectionFactory.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(SELECT_GET_GROUP)) {
+            preparedStatement.setObject(1, id);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+               return mapGroup(resultSet);
+            }
+
+            return null;
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при getGroup", e);
+        }
+    }
+
+    public IGroupAndStudentGet getStudents(long id) {
+        try(Connection connection = ConnectionFactory.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(SELECT_GET_STUDENTS)) {
+            preparedStatement.setObject(1, id);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            ListStudentsGet students = new ListStudentsGet();
+            while (resultSet.next()) {
+                students.addStudent(mapStudent(resultSet));
+            }
+
+            return students;
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при getGroup", e);
         }
     }
 
@@ -76,7 +183,7 @@ public class GroupAndStudentDao implements IGroupAndStudents<GroupAndStudents> {
             PreparedStatement preparedStatement = connection.prepareStatement(DELETE)) {
 
             for (Long id : item.getStudentsId()) {
-                preparedStatement.setObject(1, item.getNameGroup());
+                preparedStatement.setObject(1, item.getGroupId());
                 preparedStatement.setObject(2, id);
 
                 preparedStatement.execute();
@@ -87,27 +194,24 @@ public class GroupAndStudentDao implements IGroupAndStudents<GroupAndStudents> {
         }
     }
 
-    private List<GroupAndStudents> map(ResultSet resultSet) throws SQLException {
-        List<GroupAndStudents> result = new ArrayList<>();
-        GroupAndStudents gs = new GroupAndStudents();
+    private Group mapGroup(ResultSet resultSet) throws SQLException {
+        Group group = new Group();
 
-        while (resultSet.next()) {
-            String groupName = resultSet.getString("group_name");
+        group.setId(resultSet.getLong("group_id"));
+        group.setName(resultSet.getString("group_name"));
 
-            if (gs.getNameGroup() != null && !groupName.equals(gs.getNameGroup())) {
-                result.add(gs);
+        return group;
+    }
 
-                gs = new GroupAndStudents();
-            }
+    private Student mapStudent(ResultSet resultSet) throws SQLException {
+        Student student = new Student();
 
-            gs.setNameGroup(resultSet.getString("group_name"));
-            gs.addId(resultSet.getLong("id_student"));
-        }
+        student.setId(resultSet.getLong("student_id"));
+        student.setName(resultSet.getString("student_name"));
+        student.setAge(resultSet.getInt("student_age"));
+        student.setScore(resultSet.getDouble("student_score"));
+        student.setOlympicGamer(resultSet.getBoolean("student_olympic_gamer"));
 
-        if (gs.getNameGroup() != null) {
-            result.add(gs);
-        }
-
-        return result;
+        return student;
     }
 }
