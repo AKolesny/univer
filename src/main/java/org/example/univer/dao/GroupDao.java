@@ -3,15 +3,12 @@ package org.example.univer.dao;
 import org.example.univer.core.dto.Group;
 import org.example.univer.dao.api.IGroupDao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class GroupDao implements IGroupDao {
-
+    private static final GroupDao instance = new GroupDao();
     private static final String BD = "univer.groups";
 
     private static final String SELECT_ALL =
@@ -20,6 +17,16 @@ public class GroupDao implements IGroupDao {
                 "name " +
             "FROM " +
                 BD + ";"
+            ;
+
+    private static final String SELECT_GROUP =
+            "SELECT " +
+                "id, " +
+                "name " +
+            "FROM " +
+                BD + " " +
+            "WHERE " +
+                    "id = ?;"
             ;
 
     private static final String INSERT =
@@ -47,12 +54,23 @@ public class GroupDao implements IGroupDao {
                 "id = ?;"
             ;
 
+    private GroupDao() {
+    }
+
     @Override
-    public void create(Group item) {
+    public long create(Group item) {
         try(Connection connection = ConnectionFactory.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(INSERT)) {
+            PreparedStatement preparedStatement = connection.prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setObject(1, item.getName());
             preparedStatement.execute();
+
+            ResultSet rs = preparedStatement.getGeneratedKeys();
+
+            if (rs.next()) {
+                return rs.getLong(1);
+            } else {
+                throw new RuntimeException("Группа не вставилась");
+            }
 
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка при создании Group", e);
@@ -60,12 +78,36 @@ public class GroupDao implements IGroupDao {
     }
 
     @Override
-    public List<Group> get() {
+    public List<Group> getAll() {
         try(Connection connection = ConnectionFactory.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ALL)) {
+            List<Group> groups = new ArrayList<>();
+            Group group;
 
             try(ResultSet resultSet = preparedStatement.executeQuery()) {
-                return map(resultSet);
+                while (resultSet.next()) {
+                   group = map(resultSet);
+                   groups.add(group);
+                }
+            }
+            return groups;
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при getAll методе", e);
+        }
+    }
+
+    @Override
+    public Group get(long id) {
+        try(Connection connection = ConnectionFactory.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(SELECT_GROUP)) {
+
+            preparedStatement.setObject(1, id);
+
+            try(ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return map(resultSet);
+                }
+                return null;
             }
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка при get методе", e);
@@ -73,10 +115,10 @@ public class GroupDao implements IGroupDao {
     }
 
     @Override
-    public Group update(Long aLong, Group item) {
+    public void update(Group item) {
         List<Object> params = new ArrayList<>();
         params.add(item.getName());
-        params.add(aLong);
+        params.add(item.getId());
 
         try(Connection connection = ConnectionFactory.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(UPDATE)) {
@@ -90,7 +132,6 @@ public class GroupDao implements IGroupDao {
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка при обновлении Group", e);
         }
-        return null;
     }
 
     @Override
@@ -106,16 +147,16 @@ public class GroupDao implements IGroupDao {
         }
     }
 
-    private List<Group> map(ResultSet resultSet) throws SQLException {
-        List<Group> groups = new ArrayList<>();
-
-        while (resultSet.next()) {
+    private Group map(ResultSet resultSet) throws SQLException {
             Group group = new Group();
+
             group.setId(resultSet.getLong("id"));
             group.setName(resultSet.getString("name"));
-            groups.add(group);
-        }
 
-        return groups;
+        return group;
+    }
+
+    public static GroupDao getInstance() {
+        return instance;
     }
 }

@@ -2,6 +2,7 @@ package org.example.univer.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import org.example.univer.core.dto.Student;
 import org.example.univer.services.StudentService;
 
@@ -29,9 +30,14 @@ public class StudentsServlet extends HttpServlet {
         req.setCharacterEncoding("UTF-8");
         resp.setContentType("application/json; charset=utf-8");
 
-        //long id = mapper.readValue(req.getInputStream(), long.class);
-        String json = mapper.writeValueAsString(service.getStudent());
+        long id = 0;
 
+        try {
+            id = mapper.readValue(req.getInputStream(), long.class);
+        } catch (MismatchedInputException e) {
+        }
+
+        String json = mapper.writeValueAsString(service.getStudent(id));
         resp.getWriter().write(json);
     }
 
@@ -41,7 +47,10 @@ public class StudentsServlet extends HttpServlet {
         resp.setContentType("application/json; charset=utf-8");
 
         Student student = mapper.readValue(req.getInputStream(), Student.class);
-        service.createStudent(student);
+        long id = service.createStudent(student);
+
+        String json = mapper.writeValueAsString(id);
+        resp.getWriter().write(json);
     }
 
     @Override
@@ -49,9 +58,8 @@ public class StudentsServlet extends HttpServlet {
         req.setCharacterEncoding("UTF-8");
         resp.setContentType("application/json; charset=utf-8");
 
-        long id = mapper.readValue(req.getInputStream(), Long.class);
         Student student = mapper.readValue(req.getInputStream(), Student.class);
-        service.updateStudent(id, student);
+        service.updateStudent(student);
     }
 
     @Override

@@ -29,11 +29,11 @@ public class GroupAndStudentDao {
             "JOIN \n" +
                 "univer.groups AS g \n" +
             "ON \n" +
-                "gs.groups_id = g.id\n" +
+                "gs.group_id = g.id\n" +
             "JOIN \n" +
                 "univer.students AS s \n" +
             "ON \n" +
-                "gs.students_id = s.id\n" +
+                "gs.student_id = s.id\n" +
             "ORDER BY \n" +
                 "g.id ASC, \n" +
                 "s.id ASC;"
@@ -48,9 +48,9 @@ public class GroupAndStudentDao {
             "JOIN \n" +
                 "univer.groups AS g \n" +
             "ON \n" +
-                "gs.groups_id = g.id\n" +
+                "gs.group_id = g.id\n" +
             "WHERE \n" +
-                "gs.students_id = ?;"
+                "gs.student_id = ?;"
             ;
 
     private static final String SELECT_GET_STUDENTS =
@@ -65,9 +65,9 @@ public class GroupAndStudentDao {
             "JOIN \n" +
                 "univer.students AS s \n" +
             "ON \n" +
-                "gs.students_id = s.id\n" +
+                "gs.student_id = s.id\n" +
             "WHERE \n" +
-                "gs.groups_id = ? \n" +
+                "gs.group_id = ? \n" +
             "ORDER BY \n" +
                 "s.id ASC;"
             ;
@@ -75,8 +75,8 @@ public class GroupAndStudentDao {
     private static final String INSERT =
             "INSERT INTO " +
                     BD + " (" +
-                    "groups_id, " +
-                    "students_id " +
+                    "group_id, " +
+                    "student_id " +
                     ") " +
                     "VALUES " +
                     "(?, ?);"
@@ -86,9 +86,9 @@ public class GroupAndStudentDao {
             "DELETE FROM " +
                     BD + " " +
                     "WHERE " +
-                    "groups_id = ? " +
+                    "group_id = ? " +
                     "AND " +
-                    "students_id = ?;"
+                    "student_id = ?;"
             ;
 
     public void create(GroupAndStudents item) {

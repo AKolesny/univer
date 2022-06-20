@@ -16,23 +16,23 @@ public class Main1 {
         student.setName("Cаша");
         student.setAge(28);
         student.setScore(9.9);
-        student.setOlympicGamer(true);
+        student.setOlympicGamer(false);
 
-        StudentDao dao = new StudentDao();
+        StudentDao dao = StudentDao.getInstance();
         dao.create(student);
 
         //dao.update(1L, student);
 
         //dao.delete(3L);
 
-        List<Student> students = dao.get();
+        //List<Student> students = dao.get();
 
         //mapper.writeValueAsString()
 
 
 
-        for (Student student1 : students) {
-            System.out.println(student1);
-        }
+//        for (Student student1 : students) {
+//            System.out.println(student1);
+//        }
     }
 }

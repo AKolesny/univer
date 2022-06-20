@@ -56,7 +56,7 @@ public class GroupAndStudentsServlet extends HttpServlet {
         req.setCharacterEncoding("UTF-8");
         resp.setContentType("application/json; charset=utf-8");
 
-        GroupAndStudents id = mapper.readValue(req.getInputStream(), GroupAndStudents.class);
-        service.deleteGroupAndStudents(id);
+        GroupAndStudents student = mapper.readValue(req.getInputStream(), GroupAndStudents.class);
+        service.deleteGroupAndStudents(student);
     }
 }
